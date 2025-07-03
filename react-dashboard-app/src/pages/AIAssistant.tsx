@@ -60,7 +60,7 @@ const AIAssistant: React.FC = () => {
 
     try {
       // Create user message
-      const userMessageId = await createChatMessage({
+      await createChatMessage({
         userId: user.uid,
         content: messageContent,
         role: 'user',
@@ -69,8 +69,13 @@ const AIAssistant: React.FC = () => {
       // Show typing indicator
       setIsTyping(true);
 
-      // Get AI response
-      const aiResponse = await fetchAIResponse(messageContent);
+      // Get AI response with timeout
+      const aiResponse = await Promise.race([
+        fetchAIResponse(messageContent),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Response timed out')), 45000)
+        )
+      ]);
       
       // Create AI message
       await createChatMessage({
@@ -79,16 +84,30 @@ const AIAssistant: React.FC = () => {
         role: 'assistant',
       });
 
-      success('Message sent successfully!');
     } catch (error) {
       console.error('Error sending message:', error);
-      showError(handleFirestoreError(error));
       
-      // Create error message
+      let errorMessage = 'Sorry, I encountered an error. Please try again.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('API key')) {
+          errorMessage = 'AI service is not properly configured. Please check the settings.';
+        } else if (error.message.includes('timeout') || error.message.includes('timed out')) {
+          errorMessage = 'Response timed out. Please try again with a shorter message.';
+        } else if (error.message.includes('Rate limit')) {
+          errorMessage = 'Too many requests. Please wait a moment before trying again.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your internet connection.';
+        }
+      }
+      
+      showError('AI Assistant Error', errorMessage);
+      
+      // Create error message in chat
       try {
         await createChatMessage({
           userId: user.uid,
-          content: 'Sorry, I encountered an error. Please try again.',
+          content: errorMessage,
           role: 'assistant',
         });
       } catch (saveError) {
@@ -204,30 +223,32 @@ const AIAssistant: React.FC = () => {
             <div className="flex justify-center py-12">
               <LoadingSpinner size="xl" />
             </div>
-          ) : messages.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="mb-8">
-                <Sparkles className="w-20 h-20 text-purple-400 mx-auto mb-6" />
-                <h2 className="text-3xl font-bold text-white mb-4">How can I help you study today?</h2>
-                <p className="text-purple-200 max-w-2xl mx-auto text-lg">
-                  Ask me anything about your studies, get help with homework, create study plans, or just chat about your academic goals!
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-                {suggestionPrompts.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setInputMessage(suggestion.prompt)}
-                    className={`p-6 bg-gradient-to-r ${suggestion.gradient} text-white rounded-xl hover:scale-105 transition-all duration-200 backdrop-blur-sm border border-white/10 shadow-lg`}
-                  >
-                    <div className="text-2xl mb-2">{suggestion.icon}</div>
-                    <div className="font-semibold">{suggestion.title}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
           ) : (
+            <>
+              {messages.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="mb-8">
+                    <Sparkles className="w-20 h-20 text-purple-400 mx-auto mb-6" />
+                    <h2 className="text-3xl font-bold text-white mb-4">How can I help you study today?</h2>
+                    <p className="text-purple-200 max-w-2xl mx-auto text-lg">
+                      Ask me anything about your studies, get help with homework, create study plans, or just chat about your academic goals!
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+                    {suggestionPrompts.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInputMessage(suggestion.prompt)}
+                        className={`p-6 bg-gradient-to-r ${suggestion.gradient} text-white rounded-xl hover:scale-105 transition-all duration-200 backdrop-blur-sm border border-white/10 shadow-lg`}
+                      >
+                        <div className="text-2xl mb-2">{suggestion.icon}</div>
+                        <div className="font-semibold">{suggestion.title}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
             <div className="space-y-6">
               {messages.map((message) => (
                 <div
@@ -301,6 +322,8 @@ const AIAssistant: React.FC = () => {
               
               <div ref={messagesEndRef} />
             </div>
+              )}
+            </>
           )}
         </div>
       </div>

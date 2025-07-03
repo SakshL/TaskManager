@@ -20,7 +20,8 @@ import { Task, PomodoroSession, Subject, UserSettings, ChatMessage } from '../ty
 
 // Performance optimizations
 const cache = new Map();
-const CACHE_DURATION = 30000; // 30 seconds
+const CACHE_DURATION = 60000; // Increased to 60 seconds for better performance
+const requestQueue = new Map(); // Prevent duplicate requests
 
 // Debounce function to prevent excessive API calls
 const debounce = (func: Function, wait: number) => {
@@ -41,6 +42,20 @@ const getCacheKey = (collection: string, userId?: string) =>
 
 const isValidCache = (cacheEntry: any) => 
   cacheEntry && (Date.now() - cacheEntry.timestamp) < CACHE_DURATION;
+
+// Request deduplication
+const getOrCreateRequest = async <T>(key: string, requestFn: () => Promise<T>): Promise<T> => {
+  if (requestQueue.has(key)) {
+    return requestQueue.get(key);
+  }
+  
+  const request = requestFn().finally(() => {
+    requestQueue.delete(key);
+  });
+  
+  requestQueue.set(key, request);
+  return request;
+};
 
 // Task operations
 export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -78,23 +93,25 @@ export const getUserTasks = async (userId: string): Promise<Task[]> => {
     return cached.data;
   }
   
-  const q = query(
-    collection(db, 'tasks'),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
-  );
-  
-  const querySnapshot = await getDocs(q);
-  const tasks = querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate(),
-    updatedAt: doc.data().updatedAt?.toDate(),
-    deadline: doc.data().deadline?.toDate(),
-  })) as Task[];
-  
-  cache.set(cacheKey, { data: tasks, timestamp: Date.now() });
-  return tasks;
+  return getOrCreateRequest(cacheKey, async () => {
+    const q = query(
+      collection(db, 'tasks'),
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const tasks = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate(),
+      updatedAt: doc.data().updatedAt?.toDate(),
+      deadline: doc.data().deadline?.toDate(),
+    })) as Task[];
+    
+    cache.set(cacheKey, { data: tasks, timestamp: Date.now() });
+    return tasks;
+  });
 };
 
 // Pomodoro Session operations
