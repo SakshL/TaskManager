@@ -11,9 +11,12 @@ import {
   orderBy,
   limit,
   Timestamp,
+  onSnapshot,
+  QuerySnapshot,
+  DocumentData,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Task, PomodoroSession, Subject, UserSettings } from '../types';
+import { Task, PomodoroSession, Subject, UserSettings, ChatMessage } from '../types';
 
 // Task operations
 export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -157,4 +160,86 @@ export const getPomodoroStats = async (userId: string) => {
     completedSessions: completedSessions.length,
     totalFocusTime,
   };
+};
+
+// Real-time listeners
+export const subscribeToUserTasks = (userId: string, callback: (tasks: Task[]) => void) => {
+  const q = query(
+    collection(db, 'tasks'),
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc')
+  );
+  
+  return onSnapshot(q, (querySnapshot) => {
+    const tasks = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate(),
+      updatedAt: doc.data().updatedAt?.toDate(),
+      deadline: doc.data().deadline?.toDate(),
+    })) as Task[];
+    callback(tasks);
+  }, (error) => {
+    console.error('Error listening to tasks:', error);
+  });
+};
+
+// Chat message operations
+export const createChatMessage = async (message: Omit<ChatMessage, 'id' | 'timestamp'>) => {
+  const messageData = {
+    ...message,
+    timestamp: Timestamp.fromDate(new Date()),
+  };
+  
+  const docRef = await addDoc(collection(db, 'chatMessages'), messageData);
+  return docRef.id;
+};
+
+export const getUserChatMessages = async (userId: string): Promise<ChatMessage[]> => {
+  const q = query(
+    collection(db, 'chatMessages'),
+    where('userId', '==', userId),
+    orderBy('timestamp', 'asc')
+  );
+  
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    timestamp: doc.data().timestamp?.toDate(),
+  })) as ChatMessage[];
+};
+
+export const subscribeToUserChatMessages = (userId: string, callback: (messages: ChatMessage[]) => void) => {
+  const q = query(
+    collection(db, 'chatMessages'),
+    where('userId', '==', userId),
+    orderBy('timestamp', 'asc')
+  );
+  
+  return onSnapshot(q, (querySnapshot) => {
+    const messages = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      timestamp: doc.data().timestamp?.toDate(),
+    })) as ChatMessage[];
+    callback(messages);
+  }, (error) => {
+    console.error('Error listening to chat messages:', error);
+  });
+};
+
+// Error handling utilities
+export const handleFirestoreError = (error: any) => {
+  console.error('Firestore error:', error);
+  
+  if (error.code === 'permission-denied') {
+    return 'You do not have permission to perform this action.';
+  } else if (error.code === 'unavailable') {
+    return 'Service is temporarily unavailable. Please try again.';
+  } else if (error.code === 'deadline-exceeded') {
+    return 'Request timed out. Please check your connection and try again.';
+  } else {
+    return 'An error occurred. Please try again.';
+  }
 };

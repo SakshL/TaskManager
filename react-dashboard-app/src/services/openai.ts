@@ -1,4 +1,4 @@
-const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 export const fetchAIResponse = async (prompt: string): Promise<string> => {
     try {

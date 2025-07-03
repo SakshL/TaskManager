@@ -55,6 +55,7 @@ export interface ProductivityStats {
 // AI Assistant types
 export interface ChatMessage {
   id: string;
+  userId: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
@@ -96,4 +97,13 @@ export interface UserSettings {
     sessionsUntilLongBreak: number;
   };
   defaultView: 'dashboard' | 'tasks' | 'calendar';
+}
+
+// Toast notification types
+export interface ToastNotification {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
+  message?: string;
+  duration?: number;
 }
