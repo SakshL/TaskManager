@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "cd react-dashboard-app && npm run build",
-  "outputDirectory": "react-dashboard-app/dist",
-  "installCommand": "cd react-dashboard-app && npm install",
   "builds": [
     {
       "src": "react-dashboard-app/package.json",
