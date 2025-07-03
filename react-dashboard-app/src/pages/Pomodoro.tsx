@@ -14,7 +14,7 @@ import {
   Brain,
   Zap
 } from 'lucide-react';
-import useAuth from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { Task } from '../types';
 import { getUserTasks, createPomodoroSession, updatePomodoroSession } from '../services/firestore';
 

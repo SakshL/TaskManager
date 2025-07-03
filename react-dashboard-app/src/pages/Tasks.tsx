@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Plus, Search, Filter, Calendar, Clock, Tag, CheckCircle2, Circle, AlertCircle, Star, Trash2, Edit3, X } from 'lucide-react';
-import useAuth from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { Task } from '../types';
 import { createTask, updateTask, deleteTask, subscribeToUserTasks, handleFirestoreError } from '../services/firestore';
 import { useToast } from '../components/ui/Toast';

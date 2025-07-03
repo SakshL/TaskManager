@@ -13,7 +13,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import useAuth from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { Task, PomodoroSession } from '../types';
 import { subscribeToUserTasks, getUserPomodoroSessions } from '../services/firestore';
 import { TrendingUp, Clock, CheckCircle, Target, BarChart3, Calendar, Award } from 'lucide-react';

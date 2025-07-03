@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Copy, Trash2, MessageSquare, Sparkles, User, Bot, Lightbulb } from 'lucide-react';
-import useAuth from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { fetchAIResponse } from '../services/openai';
 import { createChatMessage, subscribeToUserChatMessages, handleFirestoreError } from '../services/firestore';
 import { ChatMessage } from '../types';
