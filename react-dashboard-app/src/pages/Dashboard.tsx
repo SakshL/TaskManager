@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Calendar, Clock, TrendingUp, CheckCircle2, Plus, Star, Target, Zap, BookOpen, Coffee } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import { Task, PomodoroSession } from '../types';
@@ -33,7 +33,7 @@ const Dashboard: React.FC = () => {
         }
     }, [user]);
 
-    const loadPomodoroData = async () => {
+    const loadPomodoroData = useCallback(async () => {
         try {
             const sessions = await getUserPomodoroSessions(user!.uid);
             setPomodoroSessions(sessions);
@@ -41,9 +41,9 @@ const Dashboard: React.FC = () => {
             console.error('Error loading pomodoro data:', error);
             showError('Error', 'Failed to load Pomodoro sessions');
         }
-    };
+    }, [user?.uid, showError]);
 
-    const loadMotivationalQuote = async () => {
+    const loadMotivationalQuote = useCallback(async () => {
         try {
             setQuoteLoading(true);
             const prompt = "Give me a short, motivational quote (max 20 words) for students to stay productive and focused. Just return the quote without any additional text.";
@@ -55,7 +55,7 @@ const Dashboard: React.FC = () => {
         } finally {
             setQuoteLoading(false);
         }
-    };
+    }, []);
 
     // Memoized calculations for performance
     const todaysTasks = useMemo(() => {

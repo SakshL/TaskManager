@@ -1,18 +1,20 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
-import Dashboard from './pages/Dashboard';
-import Tasks from './pages/Tasks';
-import Calendar from './pages/Calendar';
-import AIAssistant from './pages/AIAssistant';
-import Settings from './pages/Settings';
-import Login from './pages/Login';
-import Pomodoro from './pages/Pomodoro';
-import Analytics from './pages/Analytics';
 import useAuth from './hooks/useAuth';
 import { ToastProvider } from './components/ui/Toast';
 import { FullScreenLoader } from './components/ui/LoadingSpinner';
 import './styles/globals.css';
+
+// Lazy load heavy components to improve initial load time
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Tasks = lazy(() => import('./pages/Tasks'));
+const Calendar = lazy(() => import('./pages/Calendar'));
+const AIAssistant = lazy(() => import('./pages/AIAssistant'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Login = lazy(() => import('./pages/Login'));
+const Pomodoro = lazy(() => import('./pages/Pomodoro'));
+const Analytics = lazy(() => import('./pages/Analytics'));
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -58,22 +60,31 @@ const App: React.FC = () => {
     <ToastProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route 
+            path="/login" 
+            element={
+              <Suspense fallback={<FullScreenLoader text="Loading..." />}>
+                <Login />
+              </Suspense>
+            } 
+          />
           <Route
             path="/*"
             element={
               <ProtectedRoute>
                 <Layout>
-                  <Routes>
-                    <Route path="/" element={<Navigate to="/dashboard" />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/tasks" element={<Tasks />} />
-                    <Route path="/calendar" element={<Calendar />} />
-                    <Route path="/pomodoro" element={<Pomodoro />} />
-                    <Route path="/analytics" element={<Analytics />} />
-                    <Route path="/ai-assistant" element={<AIAssistant />} />
-                    <Route path="/settings" element={<Settings />} />
-                  </Routes>
+                  <Suspense fallback={<FullScreenLoader text="Loading page..." />}>
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/tasks" element={<Tasks />} />
+                      <Route path="/calendar" element={<Calendar />} />
+                      <Route path="/pomodoro" element={<Pomodoro />} />
+                      <Route path="/analytics" element={<Analytics />} />
+                      <Route path="/ai-assistant" element={<AIAssistant />} />
+                      <Route path="/settings" element={<Settings />} />
+                    </Routes>
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }

@@ -18,6 +18,30 @@ import {
 import { db } from './firebase';
 import { Task, PomodoroSession, Subject, UserSettings, ChatMessage } from '../types';
 
+// Performance optimizations
+const cache = new Map();
+const CACHE_DURATION = 30000; // 30 seconds
+
+// Debounce function to prevent excessive API calls
+const debounce = (func: Function, wait: number) => {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
+// Cache helper functions
+const getCacheKey = (collection: string, userId?: string) => 
+  userId ? `${collection}_${userId}` : collection;
+
+const isValidCache = (cacheEntry: any) => 
+  cacheEntry && (Date.now() - cacheEntry.timestamp) < CACHE_DURATION;
+
 // Task operations
 export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
   const now = new Date();
@@ -47,6 +71,13 @@ export const deleteTask = async (taskId: string) => {
 };
 
 export const getUserTasks = async (userId: string): Promise<Task[]> => {
+  const cacheKey = getCacheKey('tasks', userId);
+  const cached = cache.get(cacheKey);
+  
+  if (isValidCache(cached)) {
+    return cached.data;
+  }
+  
   const q = query(
     collection(db, 'tasks'),
     where('userId', '==', userId),
@@ -54,13 +85,16 @@ export const getUserTasks = async (userId: string): Promise<Task[]> => {
   );
   
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({
+  const tasks = querySnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data(),
     createdAt: doc.data().createdAt?.toDate(),
     updatedAt: doc.data().updatedAt?.toDate(),
     deadline: doc.data().deadline?.toDate(),
   })) as Task[];
+  
+  cache.set(cacheKey, { data: tasks, timestamp: Date.now() });
+  return tasks;
 };
 
 // Pomodoro Session operations

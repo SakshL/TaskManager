@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Plus, Search, Filter, Calendar, Clock, Tag, CheckCircle2, Circle, AlertCircle, Star, Trash2, Edit3, X } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import { Task } from '../types';
@@ -42,7 +42,60 @@ const Tasks: React.FC = () => {
         }
     }, [user]);
 
-    const resetForm = () => {
+    // Memoized filtered tasks for better performance
+    const filteredTasks = useMemo(() => {
+        return tasks.filter(task => {
+            // Search filter
+            const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                task.subject?.toLowerCase().includes(searchTerm.toLowerCase());
+            
+            // Status filter
+            const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
+            
+            // Priority filter
+            const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
+            
+            // Tags filter
+            const matchesTags = selectedTags.length === 0 || 
+                               (task.tags && selectedTags.some(tag => task.tags?.includes(tag)));
+            
+            return matchesSearch && matchesStatus && matchesPriority && matchesTags;
+        });
+    }, [tasks, searchTerm, filterStatus, filterPriority, selectedTags]);
+
+    // Memoized unique tags for filter dropdown
+    const availableTags = useMemo(() => {
+        const tags = new Set<string>();
+        tasks.forEach(task => {
+            task.tags?.forEach(tag => tags.add(tag));
+        });
+        return Array.from(tags);
+    }, [tasks]);
+
+    // Optimized callbacks
+    const handleTaskToggle = useCallback(async (taskId: string, currentStatus: Task['status']) => {
+        const newStatus = currentStatus === 'completed' ? 'todo' : 'completed';
+        try {
+            await updateTask(taskId, { status: newStatus });
+            success('Task Updated', `Task marked as ${newStatus}`);
+        } catch (err) {
+            showError('Error', handleFirestoreError(err));
+        }
+    }, [success, showError]);
+
+    const handleDeleteTask = useCallback(async (taskId: string) => {
+        if (!confirm('Are you sure you want to delete this task?')) return;
+        
+        try {
+            await deleteTask(taskId);
+            success('Task Deleted', 'Task has been deleted successfully');
+        } catch (err) {
+            showError('Error', handleFirestoreError(err));
+        }
+    }, [success, showError]);
+
+    const resetForm = useCallback(() => {
         setTaskForm({
             title: '',
             description: '',
@@ -52,7 +105,7 @@ const Tasks: React.FC = () => {
             status: 'todo',
             estimatedTime: ''
         });
-    };
+    }, []);
 
     const handleCreateTask = async () => {
         if (!taskForm.title.trim()) {
@@ -108,30 +161,6 @@ const Tasks: React.FC = () => {
         }
     };
 
-    const handleDeleteTask = async (taskId: string) => {
-        if (!confirm('Are you sure you want to delete this task?')) return;
-
-        try {
-            await deleteTask(taskId);
-            success('Task Deleted', 'Your task has been deleted successfully');
-        } catch (err) {
-            showError('Error', handleFirestoreError(err));
-        }
-    };
-
-    const handleToggleStatus = async (task: Task) => {
-        try {
-            const newStatus = task.status === 'completed' ? 'todo' : 'completed';
-            await updateTask(task.id, { status: newStatus });
-            success(
-                newStatus === 'completed' ? 'Task Completed' : 'Task Reopened',
-                `Task marked as ${newStatus}`
-            );
-        } catch (err) {
-            showError('Error', handleFirestoreError(err));
-        }
-    };
-
     const openEditModal = (task: Task) => {
         setEditingTask(task);
         setTaskForm({
@@ -151,16 +180,6 @@ const Tasks: React.FC = () => {
         resetForm();
         setShowModal(true);
     };
-
-    const filteredTasks = tasks.filter((task: Task) => {
-        const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            task.subject.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
-        const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
-        
-        return matchesSearch && matchesStatus && matchesPriority;
-    });
 
     const taskStats = {
         total: tasks.length,
@@ -325,7 +344,7 @@ const Tasks: React.FC = () => {
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center space-x-2">
                                     <button
-                                        onClick={() => handleToggleStatus(task)}
+                                        onClick={() => handleTaskToggle(task.id, task.status)}
                                         className="text-gray-400 hover:text-green-500 transition-colors"
                                     >
                                         {task.status === 'completed' ? (
