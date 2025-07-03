@@ -50,6 +50,32 @@ VITE_GOOGLE_CALENDAR_CLIENT_SECRET = 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
 - **Set for all environments** (Production, Preview, Development) if needed
 - **Wait for redeploy** after adding variables
 
+## 🔧 If You're Still Getting the Error
+
+### **Step-by-Step Fix:**
+
+1. **Wait for New Deployment**: I just pushed a new commit to trigger a fresh deployment with the fixed `vercel.json`
+
+2. **Clear Vercel Cache**:
+   - Go to your Vercel project dashboard
+   - Go to **Deployments** tab
+   - Click on the latest deployment
+   - Click **"Redeploy"** with **"Use existing Build Cache" UNCHECKED**
+
+3. **Double-Check Environment Variables**:
+   - Go to **Settings** → **Environment Variables**
+   - Ensure ALL variables from above are added
+   - Make sure they're set for **Production**, **Preview**, and **Development**
+
+4. **Force New Build**:
+   - If still getting errors, try deleting and re-adding the Vercel project
+   - Or contact Vercel support if the issue persists
+
+### **The Error Should Be Gone Because:**
+- ✅ Removed the problematic `env` section from `vercel.json`
+- ✅ Pushed new commit to trigger fresh deployment  
+- ✅ Vercel will no longer look for non-existent secrets
+
 ## 🎯 Expected Result
 After adding all environment variables and redeploying, your TaskTide app should:
 - ✅ Build successfully without environment variable errors
