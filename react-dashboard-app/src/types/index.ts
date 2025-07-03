@@ -21,6 +21,7 @@ export interface Task {
   updatedAt: Date;
   estimatedTime?: number; // in minutes
   actualTime?: number; // in minutes
+  tags?: string[]; // Task tags
 }
 
 // Pomodoro Session types

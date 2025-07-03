@@ -68,7 +68,7 @@ const Tasks: React.FC = () => {
     const availableTags = useMemo(() => {
         const tags = new Set<string>();
         tasks.forEach(task => {
-            task.tags?.forEach(tag => tags.add(tag));
+            task.tags?.forEach((tag: string) => tags.add(tag));
         });
         return Array.from(tags);
     }, [tasks]);

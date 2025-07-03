@@ -1,0 +1,1 @@
+import{j as e}from"./react-vendor-BiMSSdjs.js";const s=()=>e.jsxs("div",{className:"p-4",children:[e.jsx("h1",{className:"text-2xl font-bold",children:"Settings"}),e.jsx("p",{className:"mt-2",children:"This is the settings page where you can configure your preferences."})]});export{s as default};
