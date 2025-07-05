@@ -1,8 +1,29 @@
 {
   "name": "tasktide",
-  "private": true,
+  "private": false,
   "version": "2.0.0",
   "type": "module",
+  "description": "A high-performance React + Firebase productivity app designed for Gen Z students",
+  "author": "TaskTide Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/tasktide.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/tasktide/issues"
+  },
+  "homepage": "https://github.com/yourusername/tasktide#readme",
+  "keywords": [
+    "productivity",
+    "student",
+    "task-manager", 
+    "react",
+    "firebase",
+    "typescript",
+    "education",
+    "study-tools"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
