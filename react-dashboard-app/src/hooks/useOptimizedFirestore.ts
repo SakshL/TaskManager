@@ -53,8 +53,8 @@ export const useOptimizedCollection = <T extends DocumentData>(
     if (!user) return;
 
     const now = Date.now();
-    // Prevent duplicate requests within 1 second
-    if (now - lastFetchRef.current < 1000) {
+    // Prevent duplicate requests within 2 seconds for better performance
+    if (now - lastFetchRef.current < 2000) {
       return;
     }
     lastFetchRef.current = now;
@@ -78,7 +78,7 @@ export const useOptimizedCollection = <T extends DocumentData>(
             ...doc.data()
           } as unknown as T));
         },
-        5 * 60 * 1000 // 5 minute cache
+        10 * 60 * 1000 // 10 minute cache for better performance
       );
 
       setData(result);
@@ -185,10 +185,11 @@ export const useStudyMaterials = (enableRealtime: boolean = false) => {
   );
 };
 
-// Optimized hook for tasks
-export const useTasks = (enableRealtime: boolean = true) => {
+// Optimized hook for tasks with performance improvements
+export const useTasks = (enableRealtime: boolean = false) => {
   const { user } = useAuth();
   
+  // Simplified query constraints - only essential filtering
   const queryConstraints = user 
     ? [
         where('userId', '==', user.uid),
@@ -200,7 +201,7 @@ export const useTasks = (enableRealtime: boolean = true) => {
     'tasks',
     queryConstraints,
     [user?.uid],
-    enableRealtime
+    enableRealtime // Default to false for better performance
   );
 };
 

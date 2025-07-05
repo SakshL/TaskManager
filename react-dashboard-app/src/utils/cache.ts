@@ -11,13 +11,13 @@ class CacheManager {
   private memoryCache = new Map<string, any>();
   private readonly PREFIX = 'tasktide_cache_';
   
-  // Default cache times (in milliseconds)
+  // Default cache times (in milliseconds) - optimized for performance
   private readonly CACHE_TIMES = {
-    STUDY_MATERIALS: 5 * 60 * 1000, // 5 minutes
-    USER_DATA: 10 * 60 * 1000, // 10 minutes
-    SETTINGS: 15 * 60 * 1000, // 15 minutes
-    TASKS: 2 * 60 * 1000, // 2 minutes
-    AI_RESPONSES: 30 * 60 * 1000, // 30 minutes
+    STUDY_MATERIALS: 10 * 60 * 1000, // 10 minutes (increased)
+    USER_DATA: 15 * 60 * 1000, // 15 minutes
+    SETTINGS: 30 * 60 * 1000, // 30 minutes (increased)
+    TASKS: 5 * 60 * 1000, // 5 minutes (increased)
+    AI_RESPONSES: 60 * 60 * 1000, // 60 minutes (increased)
   };
 
   // Set data in cache with automatic expiry
