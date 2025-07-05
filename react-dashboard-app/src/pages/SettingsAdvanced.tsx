@@ -254,6 +254,11 @@ const SettingsAdvanced: React.FC = () => {
   };
 
   const handleProfileSave = async () => {
+    if (!user) {
+      showError('Error', 'User not authenticated');
+      return;
+    }
+
     setLoading(true);
     try {
       // Update profile in Firebase
@@ -264,7 +269,12 @@ const SettingsAdvanced: React.FC = () => {
 
       // Update email if changed
       if (settings.profile.email !== user.email) {
-        const credential = EmailAuthProvider.credential(user.email, emailChangePassword);
+        const userEmail = user.email;
+        if (!userEmail) {
+          showError('Error', 'Current email not available');
+          return;
+        }
+        const credential = EmailAuthProvider.credential(userEmail, emailChangePassword);
         await reauthenticateWithCredential(user, credential);
         await updateEmail(user, settings.profile.email);
       }
