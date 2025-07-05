@@ -172,7 +172,7 @@ const Hero: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Floating Demo Preview */}
+          {/* Interactive Demo Preview */}
           <motion.div
             initial={{ opacity: 0, y: 100, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -181,33 +181,133 @@ const Hero: React.FC = () => {
           >
             <div className="glass rounded-3xl p-8 max-w-5xl mx-auto">
               <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl relative overflow-hidden">
-                {/* Mock Dashboard Preview */}
+                {/* Interactive Dashboard Preview */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-accent-500/20 opacity-50"></div>
                 <div className="absolute inset-6 space-y-4">
+                  {/* Header */}
                   <div className="flex items-center justify-between">
-                    <div className="h-8 bg-white/20 rounded-lg w-32"></div>
-                    <div className="h-8 bg-white/20 rounded-lg w-24"></div>
+                    <div className="flex items-center gap-3">
+                      <motion.div 
+                        className="w-8 h-8 bg-gradient-to-r from-primary-400 to-accent-400 rounded-lg flex items-center justify-center"
+                        animate={{ rotate: [0, 360] }}
+                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                      >
+                        <SparklesIcon className="w-5 h-5 text-white" />
+                      </motion.div>
+                      <span className="text-white font-semibold">TaskTide Dashboard</span>
+                    </div>
+                    <motion.div 
+                      className="flex items-center gap-2 bg-success-500/20 px-3 py-1 rounded-full"
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <div className="w-2 h-2 bg-success-400 rounded-full animate-pulse"></div>
+                      <span className="text-success-400 text-sm font-medium">Live</span>
+                    </motion.div>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 h-32">
-                    <div className="bg-white/10 rounded-xl"></div>
-                    <div className="bg-white/10 rounded-xl"></div>
-                    <div className="bg-white/10 rounded-xl"></div>
+                  
+                  {/* Stats Cards */}
+                  <div className="grid grid-cols-3 gap-4 h-20">
+                    <motion.div 
+                      className="bg-gradient-to-r from-primary-500/30 to-primary-600/30 rounded-xl p-3 border border-primary-400/20"
+                      animate={{ y: [0, -2, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, delay: 0 }}
+                    >
+                      <div className="text-primary-300 text-xs">Tasks Today</div>
+                      <div className="text-white font-bold text-lg">12/18</div>
+                    </motion.div>
+                    <motion.div 
+                      className="bg-gradient-to-r from-accent-500/30 to-accent-600/30 rounded-xl p-3 border border-accent-400/20"
+                      animate={{ y: [0, -2, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+                    >
+                      <div className="text-accent-300 text-xs">Focus Time</div>
+                      <div className="text-white font-bold text-lg">4.2h</div>
+                    </motion.div>
+                    <motion.div 
+                      className="bg-gradient-to-r from-success-500/30 to-success-600/30 rounded-xl p-3 border border-success-400/20"
+                      animate={{ y: [0, -2, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, delay: 2 }}
+                    >
+                      <div className="text-success-300 text-xs">Streak</div>
+                      <div className="text-white font-bold text-lg">7 days</div>
+                    </motion.div>
                   </div>
+                  
+                  {/* Task List */}
                   <div className="space-y-2">
-                    <div className="h-4 bg-white/20 rounded w-3/4"></div>
-                    <div className="h-4 bg-white/15 rounded w-1/2"></div>
-                    <div className="h-4 bg-white/15 rounded w-2/3"></div>
+                    <div className="flex items-center gap-3 bg-white/10 rounded-lg p-2">
+                      <motion.div 
+                        className="w-4 h-4 border-2 border-success-400 rounded"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 1, delay: 3 }}
+                      >
+                        <motion.div
+                          className="w-full h-full bg-success-400 rounded-sm"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 3.5 }}
+                        />
+                      </motion.div>
+                      <span className="text-white/80 text-sm">Complete React dashboard</span>
+                      <div className="ml-auto bg-primary-500/20 px-2 py-1 rounded text-xs text-primary-300">High</div>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white/5 rounded-lg p-2">
+                      <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>
+                      <span className="text-white/60 text-sm">Review AI integration</span>
+                      <div className="ml-auto bg-accent-500/20 px-2 py-1 rounded text-xs text-accent-300">Med</div>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white/5 rounded-lg p-2">
+                      <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>
+                      <span className="text-white/60 text-sm">Update documentation</span>
+                      <div className="ml-auto bg-yellow-500/20 px-2 py-1 rounded text-xs text-yellow-300">Low</div>
+                    </div>
                   </div>
                 </div>
                 
-                {/* Floating Elements */}
-                <div className="absolute top-4 right-4 w-12 h-12 bg-success-400 rounded-full animate-pulse opacity-80"></div>
-                <div className="absolute bottom-4 left-4 w-8 h-8 bg-accent-400 rounded-full animate-bounce opacity-80"></div>
+                {/* Floating Action Indicators */}
+                <motion.div 
+                  className="absolute top-4 right-4 w-12 h-12 bg-gradient-to-r from-success-400 to-success-500 rounded-full flex items-center justify-center shadow-lg"
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    boxShadow: ['0 0 0 0 rgba(34, 197, 94, 0.4)', '0 0 0 10px rgba(34, 197, 94, 0)', '0 0 0 0 rgba(34, 197, 94, 0)']
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <CheckBadgeIcon className="w-6 h-6 text-white" />
+                </motion.div>
+                
+                <motion.div 
+                  className="absolute bottom-4 left-4 w-8 h-8 bg-gradient-to-r from-accent-400 to-accent-500 rounded-full flex items-center justify-center"
+                  animate={{ 
+                    y: [0, -10, 0],
+                    rotate: [0, 180, 360]
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <SparklesIcon className="w-4 h-4 text-white" />
+                </motion.div>
+
+                <motion.div 
+                  className="absolute top-1/2 right-8 w-6 h-6 bg-primary-400 rounded-full"
+                  animate={{ 
+                    scale: [0, 1, 0],
+                    opacity: [0, 1, 0]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, delay: 2 }}
+                />
               </div>
               
               <div className="mt-6 text-center">
-                <p className="text-gray-300 text-sm">
+                <motion.p 
+                  className="text-gray-300 text-sm"
+                  animate={{ opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
                   🔥 Live preview of TaskTide's premium dashboard
+                </motion.p>
+                <p className="text-gray-400 text-xs mt-1">
+                  Real-time task management • AI-powered insights • Beautiful analytics
                 </p>
               </div>
             </div>

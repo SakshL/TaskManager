@@ -1,53 +1,88 @@
 // Performance optimization utilities
-export const preloadRoute = (routeImport: () => Promise<any>) => {
-  const preload = () => {
-    const componentPromise = routeImport();
-    // Store in cache to avoid re-importing
-    if ('caches' in window) {
-      // Use service worker cache if available
-      return componentPromise;
-    }
-    return componentPromise;
-  };
-  return preload;
+
+// Improved route preloading with caching
+const routeCache = new Map<string, Promise<any>>();
+
+export const preloadRoute = (routeImport: () => Promise<any>, routeName: string) => {
+  if (routeCache.has(routeName)) {
+    return routeCache.get(routeName)!;
+  }
+  
+  const componentPromise = routeImport();
+  routeCache.set(routeName, componentPromise);
+  return componentPromise;
 };
 
-// Preload critical routes on user interaction
+// Aggressive preloading for critical routes
 export const preloadCriticalRoutes = () => {
-  // Use requestIdleCallback to preload during idle time
+  const criticalRoutes = [
+    { import: () => import('../pages/Dashboard'), name: 'dashboard' },
+    { import: () => import('../pages/TasksAdvanced'), name: 'tasks' },
+    { import: () => import('../pages/AIAssistantAdvanced'), name: 'ai' },
+    { import: () => import('../pages/SettingsAdvanced'), name: 'settings' }
+  ];
+
+  // Use requestIdleCallback for better performance
   if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      // Preload likely next routes
-      import('../pages/Dashboard');
-      import('../pages/TasksAdvanced');
-      import('../pages/AIAssistantAdvanced');
-    });
+    requestIdleCallback((deadline) => {
+      criticalRoutes.forEach(route => {
+        if (deadline.timeRemaining() > 0) {
+          preloadRoute(route.import, route.name);
+        }
+      });
+    }, { timeout: 2000 });
   } else {
-    // Fallback for browsers without requestIdleCallback
+    // Fallback with delay to avoid blocking initial render
     setTimeout(() => {
-      import('../pages/Dashboard');
-      import('../pages/TasksAdvanced');
-      import('../pages/AIAssistantAdvanced');
-    }, 1000);
+      criticalRoutes.forEach(route => {
+        preloadRoute(route.import, route.name);
+      });
+    }, 500);
   }
 };
 
-// Critical resource hints
+// Enhanced resource hints with error handling
 export const addResourceHints = () => {
   const head = document.head;
   
   // Preconnect to external services
   const preconnects = [
     'https://fonts.googleapis.com',
-    'https://fonts.gstatic.com',
-    'https://api.openai.com'
+    'https://fonts.gstatic.com', 
+    'https://api.openai.com',
+    'https://firestore.googleapis.com',
+    'https://identitytoolkit.googleapis.com'
   ];
   
   preconnects.forEach(url => {
-    const link = document.createElement('link');
-    link.rel = 'preconnect';
-    link.href = url;
-    link.crossOrigin = 'anonymous';
+    try {
+      const link = document.createElement('link');
+      link.rel = 'preconnect';
+      link.href = url;
+      link.crossOrigin = 'anonymous';
+      head.appendChild(link);
+    } catch (error) {
+      console.warn('Failed to add preconnect for:', url);
+    }
+  });
+
+  // DNS prefetch for faster connections
+  const dnsPrefetch = [
+    'https://fonts.cdnfonts.com',
+    'https://cdn.jsdelivr.net'
+  ];
+  
+  dnsPrefetch.forEach(url => {
+    try {
+      const link = document.createElement('link');
+      link.rel = 'dns-prefetch';
+      link.href = url;
+      head.appendChild(link);
+    } catch (error) {
+      console.warn('Failed to add DNS prefetch for:', url);
+    }
+  });
+};
     head.appendChild(link);
   });
   

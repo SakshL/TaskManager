@@ -81,7 +81,8 @@ const Login: React.FC = () => {
     setSuccess(null);
 
     if (authMode === 'signup' && password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Please enter the same password in both fields');
+      toast.error('Please enter the same password in both fields');
       return;
     }
 

@@ -59,7 +59,7 @@ const AIAssistant: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Create user message
+      // Create user message immediately for better UX
       await createChatMessage({
         userId: user.uid,
         content: messageContent,
@@ -69,11 +69,16 @@ const AIAssistant: React.FC = () => {
       // Show typing indicator
       setIsTyping(true);
 
-      // Get AI response with timeout
+      // Check if API key is available first
+      if (!import.meta.env.VITE_OPENAI_API_KEY) {
+        throw new Error('OpenAI API key is not configured. Please add your API key to continue.');
+      }
+
+      // Get AI response with better timeout handling
       const aiResponse = await Promise.race([
         fetchAIResponse(messageContent),
         new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Response timed out')), 45000)
+          setTimeout(() => reject(new Error('Response timed out - please try again')), 30000)
         )
       ]);
       
@@ -90,24 +95,26 @@ const AIAssistant: React.FC = () => {
       let errorMessage = 'Sorry, I encountered an error. Please try again.';
       
       if (error instanceof Error) {
-        if (error.message.includes('API key')) {
-          errorMessage = 'AI service is not properly configured. Please check the settings.';
+        if (error.message.includes('API key') || error.message.includes('not configured')) {
+          errorMessage = '🔧 AI service needs configuration. Please check your OpenAI API key in the environment settings.';
         } else if (error.message.includes('timeout') || error.message.includes('timed out')) {
-          errorMessage = 'Response timed out. Please try again with a shorter message.';
-        } else if (error.message.includes('Rate limit')) {
-          errorMessage = 'Too many requests. Please wait a moment before trying again.';
+          errorMessage = '⏰ Response took too long. Please try again with a shorter message.';
+        } else if (error.message.includes('Rate limit') || error.message.includes('429')) {
+          errorMessage = '🚦 Too many requests. Please wait a moment before trying again.';
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = 'Network error. Please check your internet connection.';
+          errorMessage = '🌐 Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('401')) {
+          errorMessage = '🔑 Invalid API key. Please check your OpenAI API key configuration.';
         }
       }
       
       showError('AI Assistant Error', errorMessage);
       
-      // Create error message in chat
+      // Create error message in chat for better user experience
       try {
         await createChatMessage({
           userId: user.uid,
-          content: errorMessage,
+          content: `❌ ${errorMessage}`,
           role: 'assistant',
         });
       } catch (saveError) {
