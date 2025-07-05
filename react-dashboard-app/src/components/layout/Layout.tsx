@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
+import AppFooter from './AppFooter';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -53,13 +54,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="h-full overflow-y-auto p-6 md:p-8"
+            className="h-full overflow-y-auto p-6 md:p-8 pb-20 lg:pb-8"
           >
             <div className="max-w-7xl mx-auto">
               {children}
             </div>
           </motion.div>
         </main>
+
+        {/* App Footer */}
+        <AppFooter />
       </div>
 
       {/* Mobile Sidebar Overlay */}

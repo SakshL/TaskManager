@@ -16,7 +16,7 @@ import PerformanceMonitor from './components/ui/PerformanceMonitor';
 
 // Pages - Lazy loaded for performance
 const LandingPage = lazy(() => import('./pages/LandingPage'));
-const Login = lazy(() => import('./pages/LoginEnhanced'));
+const Login = lazy(() => import('./pages/Login'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Tasks = lazy(() => import('./pages/TasksAdvanced'));
 const Calendar = lazy(() => import('./pages/Calendar'));
@@ -25,12 +25,16 @@ const Settings = lazy(() => import('./pages/SettingsAdvanced'));
 const Pomodoro = lazy(() => import('./pages/PomodoroAdvanced'));
 const Analytics = lazy(() => import('./pages/AnalyticsAdvanced'));
 const FlashcardSet = lazy(() => import('./components/study/FlashcardSet'));
+const StudyMaterialOrganizer = lazy(() => import('./pages/StudyMaterialOrganizer'));
+const GradeTracker = lazy(() => import('./pages/GradeTracker'));
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage'));
 
 // Hooks
 import { useAuth } from './context/AuthContext';
 
 // Styles
 import './styles/globals.css';
+import { addResourceHints, preloadCriticalRoutes, registerServiceWorker } from './utils/performance';
 
 // Page transition component
 const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -248,6 +252,48 @@ const AppContent: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/study-materials"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <PageTransition>
+                <Suspense fallback={<FullScreenLoader text="Loading Study Materials..." />}>
+                  <StudyMaterialOrganizer />
+                </Suspense>
+              </PageTransition>
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/grade-tracker"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <PageTransition>
+                <Suspense fallback={<FullScreenLoader text="Loading Grade Tracker..." />}>
+                  <GradeTracker />
+                </Suspense>
+              </PageTransition>
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/feedback"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <PageTransition>
+                <Suspense fallback={<FullScreenLoader text="Loading Feedback..." />}>
+                  <FeedbackPage />
+                </Suspense>
+              </PageTransition>
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
       
       {/* Catch all route */}
       <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} />} />
@@ -256,18 +302,32 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
+function App() {
   useEffect(() => {
-    // Initialize AOS (Animate On Scroll)
+    // Initialize AOS animations with optimized settings
     AOS.init({
-      duration: 800,
-      easing: 'ease-in-out',
-      once: true,
-      offset: 100,
+      duration: 600,
+      easing: 'ease-out-cubic',
+      once: true, // Only animate once for better performance
+      offset: 50,
+      delay: 0,
+      // Disable on mobile for better performance
+      disable: () => window.innerWidth < 768
     });
 
-    // Refresh AOS on route changes
-    AOS.refresh();
+    // Add resource hints for better loading performance
+    addResourceHints();
+
+    // Preload critical routes after initial load
+    preloadCriticalRoutes();
+
+    // Register service worker for caching
+    registerServiceWorker();
+
+    // Cleanup
+    return () => {
+      AOS.refresh();
+    };
   }, []);
 
   return (

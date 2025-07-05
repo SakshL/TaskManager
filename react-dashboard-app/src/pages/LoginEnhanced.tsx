@@ -9,7 +9,8 @@ import {
   ExclamationTriangleIcon,
   ArrowLeftIcon,
   PhoneIcon,
-  KeyIcon
+  KeyIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import { 
   signInWithGoogle, 
@@ -23,6 +24,7 @@ import {
 } from '../services/auth';
 import { ConfirmationResult } from 'firebase/auth';
 import toast, { Toaster } from 'react-hot-toast';
+import { countryCodes, CountryCode } from '../utils/countryCodes';
 
 type AuthMode = 'signin' | 'signup' | 'phone' | 'verify' | 'forgot';
 
@@ -33,6 +35,8 @@ const LoginEnhanced: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>(countryCodes[0]); // Default to US
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -52,6 +56,18 @@ const LoginEnhanced: React.FC = () => {
       }
     }
   }, [mode]);
+
+  // Close country dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showCountryDropdown && !(event.target as Element).closest('.country-dropdown')) {
+        setShowCountryDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showCountryDropdown]);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     if (type === 'success') {
@@ -152,8 +168,9 @@ const LoginEnhanced: React.FC = () => {
 
     try {
       setLoading(true);
+      const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber.replace(/^0+/, '')}`; // Remove leading zeros
       const recaptcha = initializeRecaptcha('recaptcha-container');
-      const confirmation = await sendPhoneVerification(phoneNumber, recaptcha);
+      const confirmation = await sendPhoneVerification(fullPhoneNumber, recaptcha);
       setConfirmationResult(confirmation);
       showToast('Verification code sent! 📱');
       setMode('verify');
@@ -408,21 +425,64 @@ const LoginEnhanced: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Phone Number
               </label>
-              <div className="relative">
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full px-4 py-3 pl-12 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                  placeholder="+1 (555) 123-4567"
-                  required
-                />
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <PhoneIcon className="h-5 w-5 text-gray-400" />
+              <div className="flex gap-2">
+                {/* Country Code Dropdown */}
+                <div className="relative country-dropdown">
+                  <button
+                    type="button"
+                    onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                    className="flex items-center gap-2 px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <span className="text-lg">{selectedCountry.flag}</span>
+                    <span className="text-sm font-medium">{selectedCountry.dialCode}</span>
+                    <ChevronDownIcon className={`w-4 h-4 transition-transform ${showCountryDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {showCountryDropdown && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl shadow-lg max-h-60 overflow-y-auto z-50"
+                      >
+                        {countryCodes.map((country) => (
+                          <button
+                            key={country.code}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCountry(country);
+                              setShowCountryDropdown(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <span className="text-lg">{country.flag}</span>
+                            <span className="text-sm font-medium">{country.dialCode}</span>
+                            <span className="text-xs text-gray-500 truncate">{country.name}</span>
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Phone Number Input */}
+                <div className="flex-1 relative">
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full px-4 py-3 pl-12 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                    placeholder="123 456 7890"
+                    required
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <PhoneIcon className="h-5 w-5 text-gray-400" />
+                  </div>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Include country code (e.g., +1 for US)
+                We'll send a verification code to this number
               </p>
             </div>
 
@@ -466,7 +526,7 @@ const LoginEnhanced: React.FC = () => {
                 Verify Your Phone
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                We sent a verification code to {phoneNumber}
+                We sent a verification code to {selectedCountry.dialCode} {phoneNumber}
               </p>
             </div>
 

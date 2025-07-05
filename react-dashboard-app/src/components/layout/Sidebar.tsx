@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -11,9 +11,13 @@ import {
   ChartBarIcon,
   XMarkIcon,
   CpuChipIcon,
-  BookOpenIcon
+  BookOpenIcon,
+  FolderIcon,
+  AcademicCapIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
+import ConfirmationModal from '../ui/ConfirmationModal';
 
 interface SidebarProps {
   onClose?: () => void;
@@ -22,6 +26,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   
   const navigationItems = [
     { 
@@ -61,10 +67,28 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       description: 'Study & memorize'
     },
     { 
+      path: '/study-materials', 
+      name: 'Study Materials', 
+      icon: FolderIcon,
+      description: 'Organize study content'
+    },
+    { 
+      path: '/grade-tracker', 
+      name: 'Grade Tracker', 
+      icon: AcademicCapIcon,
+      description: 'Track your grades'
+    },
+    { 
       path: '/analytics', 
       name: 'Analytics', 
       icon: ChartBarIcon,
       description: 'Progress tracking'
+    },
+    { 
+      path: '/feedback', 
+      name: 'Feedback', 
+      icon: ChatBubbleLeftRightIcon,
+      description: 'Report bugs & suggestions'
     },
     { 
       path: '/settings', 
@@ -73,6 +97,18 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       description: 'Preferences & account'
     },
   ];
+
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      await logout();
+      setShowLogoutModal(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   const isActive = (path: string) => {
     // Handle dashboard route specially
@@ -209,7 +245,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
         {/* Logout Button */}
         <button
-          onClick={logout}
+          onClick={() => setShowLogoutModal(true)}
           className="w-full flex items-center gap-3 p-3 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-300 group"
         >
           <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,6 +254,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           <span className="font-medium">Sign Out</span>
         </button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+        title="Sign Out"
+        message="Are you sure you want to sign out? You'll need to log in again to access your account."
+        confirmText="Yes, Sign Out"
+        cancelText="Cancel"
+        type="warning"
+        loading={loggingOut}
+      />
     </motion.div>
   );
 };

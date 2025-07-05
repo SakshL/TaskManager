@@ -31,7 +31,9 @@ const AIAssistantAdvanced: React.FC = () => {
   // Load chat history from Firestore
   useEffect(() => {
     if (user) {
+      console.log('🔥 Loading chat messages for user:', user.uid);
       const unsubscribe = subscribeToUserChatMessages(user.uid, (chatMessages) => {
+        console.log('✅ Received chat messages:', chatMessages.length, chatMessages);
         // Convert ChatMessage[] to Message[]
         const formattedMessages = chatMessages.map(msg => ({
           id: msg.id,
