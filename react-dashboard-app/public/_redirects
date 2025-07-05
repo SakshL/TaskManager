@@ -1,1 +1,3 @@
-/*    /index.html   200
+/verify                /verify.html           200
+/verify.html           /verify.html           200
+/*                     /index.html            200

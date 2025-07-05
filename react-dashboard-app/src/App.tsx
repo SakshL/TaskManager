@@ -96,6 +96,14 @@ const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
+  // If we're on the verify route, don't render the React app
+  if (location.pathname === '/verify' || location.pathname === '/verify.html') {
+    // This should never actually render since Vercel should serve the static file
+    // But if it does, redirect to the actual verify.html file
+    window.location.href = '/verify.html' + window.location.search;
+    return null;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">

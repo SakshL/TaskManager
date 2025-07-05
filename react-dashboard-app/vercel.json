@@ -5,7 +5,23 @@
       "destination": "/verify.html"
     },
     {
-      "source": "/(.*)",
+      "source": "/verify.html",
+      "destination": "/verify.html"
+    },
+    {
+      "source": "/favicon.png",
+      "destination": "/favicon.png"
+    },
+    {
+      "source": "/assets/(.*)",
+      "destination": "/assets/$1"
+    },
+    {
+      "source": "/_redirects",
+      "destination": "/_redirects"
+    },
+    {
+      "source": "/((?!verify\\.html$|favicon\\.png$|assets/|_redirects$).*)",
       "destination": "/index.html"
     }
   ]
