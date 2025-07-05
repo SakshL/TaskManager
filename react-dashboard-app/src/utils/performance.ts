@@ -69,7 +69,9 @@ export const addResourceHints = () => {
   // DNS prefetch for faster connections
   const dnsPrefetch = [
     'https://fonts.cdnfonts.com',
-    'https://cdn.jsdelivr.net'
+    'https://cdn.jsdelivr.net',
+    'https://firebaseapp.com',
+    'https://googleapis.com'
   ];
   
   dnsPrefetch.forEach(url => {
@@ -81,22 +83,6 @@ export const addResourceHints = () => {
     } catch (error) {
       console.warn('Failed to add DNS prefetch for:', url);
     }
-  });
-};
-    head.appendChild(link);
-  });
-  
-  // DNS prefetch for other domains
-  const dnsPrefetch = [
-    'https://firebaseapp.com',
-    'https://googleapis.com'
-  ];
-  
-  dnsPrefetch.forEach(url => {
-    const link = document.createElement('link');
-    link.rel = 'dns-prefetch';
-    link.href = url;
-    head.appendChild(link);
   });
 };
 
