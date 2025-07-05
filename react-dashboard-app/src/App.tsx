@@ -13,6 +13,7 @@ import Layout from './components/layout/Layout';
 import { ToastProvider } from './components/ui/Toast';
 import { FullScreenLoader } from './components/ui/LoadingSpinner';
 import PerformanceMonitor from './components/ui/PerformanceMonitor';
+import PerformanceIndicator from './components/ui/PerformanceIndicator';
 
 // Pages - Lazy loaded for performance
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -345,7 +346,8 @@ function App() {
           <Router>
             <div className="min-h-screen transition-colors duration-300">
               <AppContent />
-              <PerformanceMonitor showFloating={true} />
+              <PerformanceMonitor showFloating={false} />
+              <PerformanceIndicator />
             </div>
           </Router>
         </ToastProvider>

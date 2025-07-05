@@ -406,24 +406,114 @@ body {
   }
 }
 
-/* Mobile performance optimizations */
-@media (max-width: 768px) {
+/* Performance and mobile optimizations */
+@layer utilities {
+  /* Prevent layout shifts */
+  .prevent-layout-shift {
+    contain: layout style;
+  }
+  
+  /* Optimized scrolling for mobile */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* GPU acceleration for animations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  /* Text optimization for mobile */
+  .text-rendering-optimized {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Touch-friendly tap targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Optimize for mobile interactions */
   .mobile-optimized {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transform: translate3d(0, 0, 0);
     -webkit-transform: translate3d(0, 0, 0);
   }
   
-  /* Reduce animations on mobile for better performance */
-  * {
+  /* Performance critical CSS */
+  .critical-render {
+    contain: layout style paint;
+  }
+}
+
+/* Mobile-first responsive design improvements */
+@media (max-width: 640px) {
+  .glass {
+    backdrop-filter: blur(8px); /* Reduced blur for mobile performance */
+  }
+  
+  /* Improve modal experience on mobile */
+  .modal-mobile {
+    margin: 0.5rem;
+    max-height: calc(100vh - 1rem);
+  }
+  
+  /* Optimize grid layouts for mobile */
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .responsive-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
 
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .glass {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
 /* Custom global styles can be added below */
 body {
-    @apply bg-gray-100 text-gray-800;
+    @apply bg-gray-100 text-gray-800 text-rendering-optimized;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -435,7 +525,7 @@ a {
 }
 
 button {
-    @apply bg-blue-500 text-white font-semibold py-2 px-4 rounded;
+    @apply bg-blue-500 text-white font-semibold py-2 px-4 rounded touch-target mobile-optimized;
 }
 
 .modal {
