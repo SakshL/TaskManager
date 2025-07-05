@@ -65,8 +65,8 @@
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/tasktide.git
-cd tasktide
+git clone https://github.com/SakshL/TaskManager.git
+cd TaskManager/react-dashboard-app
 ```
 
 2. **Install dependencies**
@@ -175,8 +175,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - 📧 Email: support@tasktide.app
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/tasktide/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/tasktide/discussions)
+- 🐛 Issues: [GitHub Issues](https://github.com/SakshL/TaskManager/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/SakshL/TaskManager/discussions)
 
 ---
 

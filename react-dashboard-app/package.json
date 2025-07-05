@@ -8,12 +8,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/tasktide.git"
+    "url": "https://github.com/SakshL/TaskManager.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/tasktide/issues"
+    "url": "https://github.com/SakshL/TaskManager/issues"
   },
-  "homepage": "https://github.com/yourusername/tasktide#readme",
+  "homepage": "https://github.com/SakshL/TaskManager#readme",
   "keywords": [
     "productivity",
     "student",
