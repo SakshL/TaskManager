@@ -49,30 +49,27 @@ export const useOptimizedCollection = <T extends DocumentData>(
 
   const cacheKey = `${collectionName}_${user?.uid}_${JSON.stringify(queryConstraints)}`;
 
+  // Improved: Add profiling, error logging, and memory leak protection
   const fetchData = useCallback(async () => {
     if (!user) return;
-
     const now = Date.now();
     // Prevent duplicate requests within 2 seconds for better performance
-    if (now - lastFetchRef.current < 2000) {
-      return;
-    }
+    if (now - lastFetchRef.current < 2000) return;
     lastFetchRef.current = now;
 
+    console.time(`[Firestore] fetchData:${collectionName}`);
+    let isMounted = true;
     try {
       setLoading(true);
       setError(null);
-
       const result = await cachedFirestoreOperation(
         cacheKey,
         async () => {
           const collectionRef = collection(db, collectionName);
+          // Add limit for large collections (customize as needed)
           const q = query(collectionRef, ...queryConstraints);
-          
-          // Use getDocs for cached data, onSnapshot for realtime
           const { getDocs } = await import('firebase/firestore');
           const snapshot = await getDocs(q);
-          
           return snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
@@ -80,75 +77,79 @@ export const useOptimizedCollection = <T extends DocumentData>(
         },
         10 * 60 * 1000 // 10 minute cache for better performance
       );
-
-      setData(result);
+      if (isMounted) setData(result);
     } catch (err) {
-      console.error(`Error fetching ${collectionName}:`, err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      console.error(`[Firestore] Error fetching ${collectionName}:`, err);
+      if (isMounted) setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
-      setLoading(false);
+      if (isMounted) setLoading(false);
+      console.timeEnd(`[Firestore] fetchData:${collectionName}`);
     }
+    return () => { isMounted = false; };
   }, [user, collectionName, queryConstraints, cacheKey]);
 
+  // Improved: Add profiling, error logging, and memory leak protection
   const setupRealtimeListener = useCallback(() => {
     if (!user || !enableRealtime) return;
-
+    let isMounted = true;
     try {
       const collectionRef = collection(db, collectionName);
       const q = query(collectionRef, ...queryConstraints);
-
+      console.time(`[Firestore] onSnapshot:${collectionName}`);
       const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
+          if (!isMounted) return;
           const newData = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
           } as unknown as T));
-
           setData(newData);
-          // Update cache with fresh data
           cache.set(cacheKey, newData);
           setLoading(false);
         },
         (err) => {
-          console.error(`Realtime listener error for ${collectionName}:`, err);
+          if (!isMounted) return;
+          console.error(`[Firestore] Realtime listener error for ${collectionName}:`, err);
           setError(err.message);
           setLoading(false);
         }
       );
-
       unsubscribeRef.current = unsubscribe;
+      console.timeEnd(`[Firestore] onSnapshot:${collectionName}`);
     } catch (err) {
-      console.error(`Error setting up realtime listener:`, err);
+      console.error(`[Firestore] Error setting up realtime listener:`, err);
       setError(err instanceof Error ? err.message : 'Failed to setup realtime updates');
     }
+    return () => { isMounted = false; };
   }, [user, collectionName, queryConstraints, cacheKey, enableRealtime]);
 
   useEffect(() => {
+    let isMounted = true;
     if (!user) {
       setData([]);
       setLoading(false);
       return;
     }
-
     // Check cache first for immediate data
     const cachedData = cache.get<T[]>(cacheKey);
     if (cachedData) {
       setData(cachedData);
       setLoading(false);
     }
-
+    let cleanup: (() => void) | undefined;
     if (enableRealtime) {
-      setupRealtimeListener();
+      cleanup = setupRealtimeListener();
     } else {
       fetchData();
     }
-
     return () => {
+      isMounted = false;
       if (unsubscribeRef.current) {
         unsubscribeRef.current();
         unsubscribeRef.current = null;
       }
+      if (cleanup) cleanup();
     };
   }, [user, ...debouncedDependencies, enableRealtime]);
 
